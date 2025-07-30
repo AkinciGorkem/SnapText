@@ -2,6 +2,14 @@
 
 **SnapText** is a powerful Windows OCR (Optical Character Recognition) screenshot tool that instantly extracts text from any area of your screen. Perfect for digitizing documents, capturing quotes, extracting code snippets, or converting any visual text into editable content.
 
+<p align="center">
+  <img src="Assets/1.png" alt="1.png" width="50%">
+</p>
+<p align="center">
+  <img src="Assets/2.png" alt="2.png" width="50%">
+</p>
+
+
 ## Features
 
 - **Lightning-Fast OCR** - Instant text recognition powered by IronOCR
