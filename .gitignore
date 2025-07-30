@@ -1,0 +1,76 @@
+## Ignore Visual Studio temporary files, build results, and user-specific files
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Visual Studio 2022+ working folder
+.vs/
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of package restore
+**/packages/*
+# except build/ packages folder
+!**/packages/build/
+
+# Roslyn cache directories
+*.ide/
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+
+# ReSharper settings
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Rider settings
+.idea/
+
+# Logs
+*.log
+
+# Test results
+TestResults/
+*.VisualState.xml
+*.coverage
+*.coveragexml
+
+# Temporary files
+*.tmp
+*.temp
+*.dbmdl
+*.bak
+*.cache
+*.config
+
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# DotCover
+*.dotCover
+
+# T4 generated files
+*.Generated.cs
+
+# Publish outputs
+publish/
+
+# Visual Studio Code settings
+.vscode/
