@@ -4,15 +4,6 @@ namespace SnapText
     {
         private System.ComponentModel.IContainer components = null;
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         private void InitializeComponent()
         {
             searchTextBox = new Guna.UI2.WinForms.Guna2TextBox();
@@ -26,7 +17,9 @@ namespace SnapText
             tagsComboBox = new Guna.UI2.WinForms.Guna2ComboBox();
             tagLabel = new Label();
             addTagButton = new Guna.UI2.WinForms.Guna2Button();
+            removeTagButton = new Guna.UI2.WinForms.Guna2Button();
             newTagTextBox = new Guna.UI2.WinForms.Guna2TextBox();
+            exportFormatComboBox = new Guna.UI2.WinForms.Guna2ComboBox();
             ((System.ComponentModel.ISupportInitialize)historyDataGridView).BeginInit();
             SuspendLayout();
             
@@ -115,6 +108,18 @@ namespace SnapText
             addTagButton.Text = "Add Tag";
             addTagButton.UseTransparentBackground = true;
             
+            removeTagButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            removeTagButton.BorderRadius = 8;
+            removeTagButton.FillColor = Color.FromArgb(231, 76, 60);
+            removeTagButton.Font = new Font("Segoe UI", 9F);
+            removeTagButton.ForeColor = Color.White;
+            removeTagButton.Location = new Point(435, 54);
+            removeTagButton.Name = "removeTagButton";
+            removeTagButton.Size = new Size(90, 36);
+            removeTagButton.TabIndex = 7;
+            removeTagButton.Text = "Remove Tag";
+            removeTagButton.UseTransparentBackground = true;
+            
             historyDataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             historyDataGridView.AllowUserToAddRows = false;
             historyDataGridView.AllowUserToDeleteRows = false;
@@ -129,15 +134,28 @@ namespace SnapText
             historyDataGridView.Size = new Size(760, 350);
             historyDataGridView.TabIndex = 7;
             
+            exportFormatComboBox.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            exportFormatComboBox.BackColor = Color.Transparent;
+            exportFormatComboBox.BorderRadius = 8;
+            exportFormatComboBox.DrawMode = DrawMode.OwnerDrawFixed;
+            exportFormatComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            exportFormatComboBox.FillColor = Color.FromArgb(37, 37, 38);
+            exportFormatComboBox.ForeColor = Color.White;
+            exportFormatComboBox.ItemHeight = 30;
+            exportFormatComboBox.Location = new Point(12, 470);
+            exportFormatComboBox.Name = "exportFormatComboBox";
+            exportFormatComboBox.Size = new Size(100, 36);
+            exportFormatComboBox.TabIndex = 8;
+            
             exportButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             exportButton.BorderRadius = 8;
             exportButton.FillColor = Color.FromArgb(155, 89, 182);
             exportButton.Font = new Font("Segoe UI", 9F);
             exportButton.ForeColor = Color.White;
-            exportButton.Location = new Point(12, 470);
+            exportButton.Location = new Point(125, 470);
             exportButton.Name = "exportButton";
-            exportButton.Size = new Size(100, 36);
-            exportButton.TabIndex = 8;
+            exportButton.Size = new Size(80, 36);
+            exportButton.TabIndex = 9;
             exportButton.Text = "Export";
             exportButton.UseTransparentBackground = true;
             
@@ -149,7 +167,7 @@ namespace SnapText
             deleteButton.Location = new Point(560, 470);
             deleteButton.Name = "deleteButton";
             deleteButton.Size = new Size(100, 36);
-            deleteButton.TabIndex = 9;
+            deleteButton.TabIndex = 10;
             deleteButton.Text = "Delete";
             deleteButton.UseTransparentBackground = true;
             
@@ -161,16 +179,16 @@ namespace SnapText
             clearAllButton.Location = new Point(672, 470);
             clearAllButton.Name = "clearAllButton";
             clearAllButton.Size = new Size(100, 36);
-            clearAllButton.TabIndex = 10;
+            clearAllButton.TabIndex = 11;
             clearAllButton.Text = "Clear All";
             clearAllButton.UseTransparentBackground = true;
             
             statusLabel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             statusLabel.ForeColor = Color.White;
-            statusLabel.Location = new Point(125, 478);
+            statusLabel.Location = new Point(220, 478);
             statusLabel.Name = "statusLabel";
-            statusLabel.Size = new Size(420, 20);
-            statusLabel.TabIndex = 11;
+            statusLabel.Size = new Size(320, 20);
+            statusLabel.TabIndex = 12;
             statusLabel.Text = "Ready";
             statusLabel.TextAlign = ContentAlignment.MiddleCenter;
             
@@ -184,7 +202,9 @@ namespace SnapText
             Controls.Add(exportButton);
             Controls.Add(historyDataGridView);
             Controls.Add(addTagButton);
+            Controls.Add(removeTagButton);
             Controls.Add(newTagTextBox);
+            Controls.Add(exportFormatComboBox);
             Controls.Add(tagsComboBox);
             Controls.Add(tagLabel);
             Controls.Add(clearSearchButton);
@@ -210,6 +230,8 @@ namespace SnapText
         private Guna.UI2.WinForms.Guna2ComboBox tagsComboBox;
         private Label tagLabel;
         private Guna.UI2.WinForms.Guna2Button addTagButton;
+        private Guna.UI2.WinForms.Guna2Button removeTagButton;
         private Guna.UI2.WinForms.Guna2TextBox newTagTextBox;
+        private Guna.UI2.WinForms.Guna2ComboBox exportFormatComboBox;
     }
 }

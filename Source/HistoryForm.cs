@@ -10,6 +10,7 @@ namespace SnapText
         private readonly IHistoryRepository _historyRepository;
         private List<HistoryEntry> _currentEntries = new List<HistoryEntry>();
         private HistoryEntry? _selectedEntry;
+        private ToolTip? _textPreviewToolTip;
 
         public HistoryForm()
         {
@@ -17,6 +18,8 @@ namespace SnapText
             _historyRepository = new JsonHistoryRepository();
             SetupDataGridView();
             SetupEventHandlers();
+            SetupExportFormatComboBox();
+            SetupTooltip();
             LoadHistory();
             LoadTags();
         }
@@ -100,14 +103,34 @@ namespace SnapText
             
             tagsComboBox.SelectedIndexChanged += OnTagsComboBoxSelectedIndexChanged;
             addTagButton.Click += OnAddTagButtonClick;
+            removeTagButton.Click += OnRemoveTagButtonClick;
             newTagTextBox.KeyDown += OnNewTagTextBoxKeyDown;
             
             historyDataGridView.SelectionChanged += OnHistoryDataGridViewSelectionChanged;
             historyDataGridView.CellDoubleClick += OnHistoryDataGridViewCellDoubleClick;
+            historyDataGridView.CellMouseEnter += OnHistoryDataGridViewCellMouseEnter;
+            historyDataGridView.CellMouseLeave += OnHistoryDataGridViewCellMouseLeave;
             
             exportButton.Click += OnExportButtonClick;
             deleteButton.Click += OnDeleteButtonClick;
             clearAllButton.Click += OnClearAllButtonClick;
+        }
+
+        private void SetupExportFormatComboBox()
+        {
+            exportFormatComboBox.Items.Clear();
+            exportFormatComboBox.Items.Add("CSV");
+            exportFormatComboBox.Items.Add("TXT");
+            exportFormatComboBox.Items.Add("JSON");
+            exportFormatComboBox.SelectedIndex = 0;
+        }
+
+        private void SetupTooltip()
+        {
+            _textPreviewToolTip = new ToolTip();
+            _textPreviewToolTip.InitialDelay = 500;
+            _textPreviewToolTip.ReshowDelay = 100;
+            _textPreviewToolTip.AutoPopDelay = 5000;
         }
 
         private async void LoadHistory()
@@ -164,7 +187,7 @@ namespace SnapText
             await PerformSearch();
         }
 
-        private async void OnClearSearchButtonClick(object? sender, EventArgs e)
+        private void OnClearSearchButtonClick(object? sender, EventArgs e)
         {
             searchTextBox.Text = "";
             tagsComboBox.SelectedIndex = 0;
@@ -315,35 +338,50 @@ namespace SnapText
                 return;
             }
 
+            if (exportFormatComboBox.SelectedIndex < 0)
+            {
+                statusLabel.Text = "Please select export format";
+                return;
+            }
+
+            var selectedFormat = exportFormatComboBox.SelectedItem?.ToString()?.ToUpperInvariant();
+            var extension = selectedFormat switch
+            {
+                "CSV" => ".csv",
+                "TXT" => ".txt",
+                "JSON" => ".json",
+                _ => ".csv"
+            };
+
+            var filter = selectedFormat switch
+            {
+                "CSV" => "CSV Files (*.csv)|*.csv",
+                "TXT" => "Text Files (*.txt)|*.txt",
+                "JSON" => "JSON Files (*.json)|*.json",
+                _ => "CSV Files (*.csv)|*.csv"
+            };
+
             using var saveDialog = new SaveFileDialog
             {
-                Title = "Export History",
-                Filter = "CSV Files (*.csv)|*.csv|Text Files (*.txt)|*.txt|JSON Files (*.json)|*.json",
+                Title = $"Export History as {selectedFormat}",
+                Filter = filter,
                 FilterIndex = 1,
-                FileName = $"SnapText_History_{DateTime.Now:yyyyMMdd_HHmmss}"
+                FileName = $"SnapText_History_{DateTime.Now:yyyyMMdd_HHmmss}{extension}"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    bool success = false;
-                    var extension = Path.GetExtension(saveDialog.FileName).ToLowerInvariant();
-                    
-                    switch (extension)
+                    bool success = selectedFormat switch
                     {
-                        case ".csv":
-                            success = await HistoryExporter.ExportToCsvAsync(_currentEntries, saveDialog.FileName);
-                            break;
-                        case ".txt":
-                            success = await HistoryExporter.ExportToTxtAsync(_currentEntries, saveDialog.FileName);
-                            break;
-                        case ".json":
-                            success = await HistoryExporter.ExportToJsonAsync(_currentEntries, saveDialog.FileName);
-                            break;
-                    }
+                        "CSV" => await HistoryExporter.ExportToCsvAsync(_currentEntries, saveDialog.FileName),
+                        "TXT" => await HistoryExporter.ExportToTxtAsync(_currentEntries, saveDialog.FileName),
+                        "JSON" => await HistoryExporter.ExportToJsonAsync(_currentEntries, saveDialog.FileName),
+                        _ => await HistoryExporter.ExportToCsvAsync(_currentEntries, saveDialog.FileName)
+                    };
 
-                    statusLabel.Text = success ? "Export completed successfully" : "Export failed";
+                    statusLabel.Text = success ? $"Export to {selectedFormat} completed successfully" : "Export failed";
                 }
                 catch (Exception ex)
                 {
@@ -406,6 +444,91 @@ namespace SnapText
                     statusLabel.Text = $"Clear error: {ex.Message}";
                 }
             }
+        }
+
+        private async void OnRemoveTagButtonClick(object? sender, EventArgs e)
+        {
+            if (_selectedEntry == null)
+            {
+                statusLabel.Text = "Please select an entry first";
+                return;
+            }
+
+            if (tagsComboBox.SelectedIndex <= 0 || tagsComboBox.SelectedItem?.ToString() == "All Tags")
+            {
+                statusLabel.Text = "Please select a tag to remove";
+                return;
+            }
+
+            var tagToRemove = tagsComboBox.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(tagToRemove))
+            {
+                statusLabel.Text = "Invalid tag selection";
+                return;
+            }
+
+            try
+            {
+                if (_selectedEntry.Tags.Contains(tagToRemove, StringComparer.OrdinalIgnoreCase))
+                {
+                    _selectedEntry.Tags.RemoveAll(tag => string.Equals(tag, tagToRemove, StringComparison.OrdinalIgnoreCase));
+                    await _historyRepository.UpdateAsync(_selectedEntry);
+                    
+                    LoadTags();
+                    LoadHistory();
+                    statusLabel.Text = $"Tag '{tagToRemove}' removed";
+                }
+                else
+                {
+                    statusLabel.Text = "Selected entry does not have this tag";
+                }
+            }
+            catch (Exception ex)
+            {
+                statusLabel.Text = $"Error removing tag: {ex.Message}";
+            }
+        }
+
+        private void OnHistoryDataGridViewCellMouseEnter(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == 2) // Text Preview column
+            {
+                if (e.RowIndex < _currentEntries.Count)
+                {
+                    var entry = _currentEntries[e.RowIndex];
+                    var fullText = entry.ExtractedText;
+                    
+                    if (!string.IsNullOrEmpty(fullText))
+                    {
+                        var displayText = fullText.Length > 500 
+                            ? fullText.Substring(0, 500) + "..."
+                            : fullText;
+                        
+                        var cellRect = historyDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                        var screenPoint = historyDataGridView.PointToScreen(new Point(cellRect.X, cellRect.Y));
+                        
+                        _textPreviewToolTip?.Show(displayText, this, PointToClient(screenPoint), 5000);
+                    }
+                }
+            }
+        }
+
+        private void OnHistoryDataGridViewCellMouseLeave(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == 2) // Text Preview column
+            {
+                _textPreviewToolTip?.Hide(this);
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _textPreviewToolTip?.Dispose();
+                components?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 
