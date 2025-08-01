@@ -62,6 +62,7 @@
             controlPanel = new Guna.UI2.WinForms.Guna2Panel();
             statusLabel = new Guna.UI2.WinForms.Guna2HtmlLabel();
             settingsButton = new Guna.UI2.WinForms.Guna2Button();
+            historyButton = new Guna.UI2.WinForms.Guna2Button();
             clearButton = new Guna.UI2.WinForms.Guna2Button();
             copyButton = new Guna.UI2.WinForms.Guna2Button();
             captureButton = new Guna.UI2.WinForms.Guna2Button();
@@ -183,6 +184,7 @@
             controlPanel.BorderRadius = 8;
             controlPanel.Controls.Add(statusLabel);
             controlPanel.Controls.Add(settingsButton);
+            controlPanel.Controls.Add(historyButton);
             controlPanel.Controls.Add(clearButton);
             controlPanel.Controls.Add(copyButton);
             controlPanel.Controls.Add(captureButton);
@@ -222,10 +224,27 @@
             settingsButton.Location = new Point(350, 15);
             settingsButton.Name = "settingsButton";
             settingsButton.ShadowDecoration.CustomizableEdges = customizableEdges4;
-            settingsButton.Size = new Size(210, 30);
+            settingsButton.Size = new Size(105, 30);
             settingsButton.TabIndex = 4;
             settingsButton.Text = "Settings";
             // 
+            // historyButton
+            // 
+            historyButton.BorderRadius = 6;
+            historyButton.CustomizableEdges = customizableEdges5;
+            historyButton.DisabledState.BorderColor = Color.DarkGray;
+            historyButton.DisabledState.CustomBorderColor = Color.DarkGray;
+            historyButton.DisabledState.FillColor = Color.FromArgb(169, 169, 169);
+            historyButton.DisabledState.ForeColor = Color.FromArgb(141, 141, 141);
+            historyButton.FillColor = Color.FromArgb(155, 89, 182);
+            historyButton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            historyButton.ForeColor = Color.White;
+            historyButton.Location = new Point(465, 15);
+            historyButton.Name = "historyButton";
+            historyButton.ShadowDecoration.CustomizableEdges = customizableEdges6;
+            historyButton.Size = new Size(105, 30);
+            historyButton.TabIndex = 5;
+            historyButton.Text = "History";
             // 
             // clearButton
             // 
@@ -316,6 +335,7 @@
         private Guna.UI2.WinForms.Guna2Button copyButton;
         private Guna.UI2.WinForms.Guna2Button captureButton;
         private Guna.UI2.WinForms.Guna2Button settingsButton;
+        private Guna.UI2.WinForms.Guna2Button historyButton;
         private Guna.UI2.WinForms.Guna2HtmlLabel statusLabel;
     }
 }

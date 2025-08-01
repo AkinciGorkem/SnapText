@@ -1,4 +1,7 @@
 using IronOcr;
+using SnapText.Data;
+using SnapText.Models;
+using SnapText.Services;
 
 namespace SnapText
 {
@@ -8,6 +11,7 @@ namespace SnapText
         private GlobalHotkeyManager? _hotkeyManager;
         private NotifyIcon? _notifyIcon;
         private IronTesseract? _ocrEngine;
+        private IHistoryRepository? _historyRepository;
 
         public MainForm()
         {
@@ -15,6 +19,7 @@ namespace SnapText
             InitializeHotkeys();
             InitializeSystemTray();
             InitializeOcr();
+            InitializeHistory();
             InitializeEventHandlers();
             UpdateHotkeyDisplay();
         }
@@ -35,6 +40,7 @@ namespace SnapText
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Show", null, OnShowClick);
             contextMenu.Items.Add("-");
+            contextMenu.Items.Add("History", null, OnHistoryMenuClick);
             contextMenu.Items.Add("Settings", null, OnSettingsMenuClick);
             contextMenu.Items.Add("-");
             contextMenu.Items.Add("Exit", null, OnExitClick);
@@ -63,12 +69,18 @@ namespace SnapText
             _ocrEngine.Language = OcrLanguage.English;
         }
 
+        private void InitializeHistory()
+        {
+            _historyRepository = new JsonHistoryRepository();
+        }
+
         private void InitializeEventHandlers()
         {
             captureButton.Click += (s, e) => CaptureScreenshot();
             copyButton.Click += OnCopyButtonClick;
             clearButton.Click += OnClearButtonClick;
             settingsButton.Click += OnSettingsButtonClick;
+            historyButton.Click += OnHistoryButtonClick;
         }
 
         protected override void WndProc(ref Message m)
@@ -118,6 +130,9 @@ namespace SnapText
                 statusLabel.Text = "Processing OCR...";
                 ocrResultsTextBox.Text = "Processing...";
                 
+                string cleanedText = "";
+                int characterCount = 0;
+                
                 await Task.Run(() =>
                 {
                     if (_ocrEngine != null)
@@ -128,9 +143,9 @@ namespace SnapText
                         
                         this.Invoke(() =>
                         {
-                            var cleanedText = CleanOcrText(result.Text);
+                            cleanedText = CleanOcrText(result.Text);
                             var displayText = string.IsNullOrWhiteSpace(cleanedText) ? "No text detected in the image." : cleanedText;
-                            var characterCount = string.IsNullOrWhiteSpace(cleanedText) ? 0 : cleanedText.Length;
+                            characterCount = string.IsNullOrWhiteSpace(cleanedText) ? 0 : cleanedText.Length;
                             
                             ocrResultsTextBox.Text = displayText;
                             statusLabel.Text = characterCount > 0 
@@ -140,6 +155,11 @@ namespace SnapText
                     }
                 });
                 
+                if (characterCount > 0 && !string.IsNullOrWhiteSpace(cleanedText))
+                {
+                    await SaveToHistory(cleanedText, imagePath);
+                }
+                
                 _notifyIcon?.ShowBalloonTip(3000, "SnapText", "OCR processing completed!", ToolTipIcon.Info);
             }
             catch (Exception ex)
@@ -147,6 +167,29 @@ namespace SnapText
                 ocrResultsTextBox.Text = $"OCR Error: {ex.Message}";
                 statusLabel.Text = "OCR failed";
                 MessageBox.Show($"OCR processing failed: {ex.Message}", "OCR Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private async Task SaveToHistory(string extractedText, string imagePath)
+        {
+            try
+            {
+                if (_historyRepository != null)
+                {
+                    var baseFileName = Path.GetFileNameWithoutExtension(imagePath);
+                    string thumbnailPath = "";
+                    
+                    if (File.Exists(imagePath))
+                    {
+                        thumbnailPath = ThumbnailGenerator.GenerateThumbnail(imagePath);
+                    }
+                    
+                    var historyEntry = new HistoryEntry(extractedText, imagePath, thumbnailPath);
+                    await _historyRepository.AddAsync(historyEntry);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -280,12 +323,26 @@ namespace SnapText
             settingsForm.ShowDialog(this);
         }
 
+        private void OnHistoryButtonClick(object? sender, EventArgs e)
+        {
+            using var historyForm = new HistoryForm();
+            historyForm.ShowDialog(this);
+        }
+
         private void OnSettingsMenuClick(object? sender, EventArgs e)
         {
             this.Show();
             this.BringToFront();
             using var settingsForm = new SettingsForm();
             settingsForm.ShowDialog(this);
+        }
+
+        private void OnHistoryMenuClick(object? sender, EventArgs e)
+        {
+            this.Show();
+            this.BringToFront();
+            using var historyForm = new HistoryForm();
+            historyForm.ShowDialog(this);
         }
 
         private void OnNotifyIconDoubleClick(object? sender, EventArgs e)
